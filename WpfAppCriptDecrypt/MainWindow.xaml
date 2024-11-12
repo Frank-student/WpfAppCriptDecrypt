@@ -1,0 +1,22 @@
+﻿<Window x:Class="WpfAppCriptDecrypt.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfAppCriptDecrypt"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Button Content="Encrypt" HorizontalAlignment="Left" Height="30" Margin="565,50,0,0" VerticalAlignment="Top" Width="80"/>
+        <Button Content="Decrypt" HorizontalAlignment="Left" Height="30" Margin="565,175,0,0" VerticalAlignment="Top" Width="80"/>
+        <Button Content="Cancel" HorizontalAlignment="Left" Height="30" Margin="565,295,0,0" VerticalAlignment="Top" Width="80"/>
+        <TextBox TextWrapping="Wrap" Text="TextBox" Margin="27,31,410,327"/>
+        <TextBox TextWrapping="Wrap" Text="TextBox" Margin="27,149,410,209"/>
+        <TextBox TextWrapping="Wrap" Text="TextBox" Margin="27,272,410,86"/>
+        <ProgressBar HorizontalAlignment="Left" Height="18" Margin="408,89,0,0" VerticalAlignment="Top" Width="237"/>
+        <TextBlock HorizontalAlignment="Left" Height="21" Margin="27,10,0,0" TextWrapping="Wrap" Text="Original Text" VerticalAlignment="Top" Width="129"/>
+        <TextBlock HorizontalAlignment="Left" Height="21" Margin="27,128,0,0" TextWrapping="Wrap" Text="Crypted Text" VerticalAlignment="Top" Width="129"/>
+        <TextBlock HorizontalAlignment="Left" Height="21" Margin="27,251,0,0" TextWrapping="Wrap" Text="Decrypted Text" VerticalAlignment="Top" Width="129"/>
+
+    </Grid>
+</Window>
