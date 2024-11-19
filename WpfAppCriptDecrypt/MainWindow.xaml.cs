@@ -35,7 +35,12 @@ namespace WpfAppCriptDecrypt
             //se va declansa atunci cand BackgroundWorker isi termina executia
             bkworker.RunWorkerCompleted += bkworker_RunWorkerCompleted;
             lbl_text_afis.Content = "Hello BackgroudWorker!";
+            string[] args = [
+                lbl_text_afis.Content,
+                "Vine mo;ul"
 
+];
+            Culori(lbl_text_afis.Content, );
         }
         //metoda (procesarea) pe care o executa BackgroundWorker
         void bkworker_DoWork(object? sender, DoWorkEventArgs e)
@@ -119,7 +124,7 @@ namespace WpfAppCriptDecrypt
             String[] culori = { "rosu", "galben", "verde", "albastru", "portocaliu" };
             foreach (String c in culori)
             {
-                System.Diagnostics.Debug.WriteLine(String.Format("Numele thread-ului {0} numarul curent {1}", Thread.CurrentThread.Name, c)); 
+                System.Diagnostics.Debug.WriteLine(String.Format("Numele thread-ului {0} numarul curent {1}", Thread.CurrentThread.Name, c));
                 Thread.Sleep(1000);
             }
             return String.Format("Task-ul cu numele {0} si-a finalizat executia!",
