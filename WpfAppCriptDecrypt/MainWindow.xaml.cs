@@ -35,12 +35,8 @@ namespace WpfAppCriptDecrypt
             //se va declansa atunci cand BackgroundWorker isi termina executia
             bkworker.RunWorkerCompleted += bkworker_RunWorkerCompleted;
             lbl_text_afis.Content = "Hello BackgroudWorker!";
-            string[] args = [
-                lbl_text_afis.Content,
-                "Vine mo;ul"
-
-];
-            Culori(lbl_text_afis.Content, );
+            string[] args =[lbl_text_afis.Content];   
+            Culori(args );
         }
         //metoda (procesarea) pe care o executa BackgroundWorker
         void bkworker_DoWork(object? sender, DoWorkEventArgs e)
