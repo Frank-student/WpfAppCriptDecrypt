@@ -5,26 +5,40 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfAppCriptDecrypt"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800"
+        Background="#1C1C1C">
 
-    <Grid x:Name="main_Grid">
-        <Button x:Name="btn_Cancel" Content="Cancel" HorizontalAlignment="Left"
-Margin="579,35,0,0" VerticalAlignment="Top" Height="38" Width="71"
-Click="btn_Cancel_Click"/>
-        <Button x:Name="btn_Start" Content="Start" HorizontalAlignment="Left"
-Margin="436,34,0,0" VerticalAlignment="Top" Height="40" Width="82"
-Click="btn_Start_Click"/>
-        <Label x:Name="lbl_text_afis" Content="Label" HorizontalAlignment="Left"
-Margin="436,74,0,0" VerticalAlignment="Top"/>
-        <ProgressBar x:Name="progres" HorizontalAlignment="Left" Height="10"
-Margin="436,97,0,0" VerticalAlignment="Top" Width="236"/>
-        <Button Content="Encrypt" HorizontalAlignment="Left" Height="30" Margin="436,172,0,0" VerticalAlignment="Top" Width="80"/>
-        <Button Content="Decrypt" HorizontalAlignment="Left" Height="30" Margin="436,310,0,0" VerticalAlignment="Top" Width="80"/>
-        <TextBox TextWrapping="Wrap" Text="TextBox" Margin="27,31,410,327"/>
-        <TextBox TextWrapping="Wrap" Text="TextBox" Margin="27,149,410,209"/>
-        <TextBox TextWrapping="Wrap" Text="TextBox" Margin="27,272,410,86"/>
-        <TextBlock HorizontalAlignment="Left" Height="21" Margin="27,10,0,0" TextWrapping="Wrap" Text="Original Text" VerticalAlignment="Top" Width="129"/>
-        <TextBlock HorizontalAlignment="Left" Height="21" Margin="27,128,0,0" TextWrapping="Wrap" Text="Crypted Text" VerticalAlignment="Top" Width="129"/>
-        <TextBlock HorizontalAlignment="Left" Height="21" Margin="27,251,0,0" TextWrapping="Wrap" Text="Decrypted Text" VerticalAlignment="Top" Width="129"/>
+    <Grid x:Name="main_Grid" Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="3*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Original Text" Foreground="#FFFFFF" FontWeight="Bold" Margin="10" Grid.Row="0" Grid.Column="0" />
+        <TextBox x:Name="text_originall" Margin="10" Grid.Row="0" Grid.Column="1" Height="30" VerticalAlignment="Center" Background="#2B2B2B" Foreground="#FFFFFF" BorderThickness="0" />
+
+        <TextBlock Text="Crypted Text" Foreground="#FFFFFF" FontWeight="Bold" Margin="10" Grid.Row="1" Grid.Column="0" />
+        <TextBox x:Name="text_crypted" Margin="10" Grid.Row="1" Grid.Column="1" Height="30" VerticalAlignment="Center" Background="#2B2B2B" Foreground="#FFFFFF" BorderThickness="0" />
+
+        <TextBlock Text="Decrypted Text" Foreground="#FFFFFF" FontWeight="Bold" Margin="10" Grid.Row="2" Grid.Column="0" />
+        <TextBox x:Name="text_decrypted" Margin="10" Grid.Row="2" Grid.Column="1" Height="30" VerticalAlignment="Center" Background="#2B2B2B" Foreground="#FFFFFF" BorderThickness="0" />
+
+
+        <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="btn_Start_Encryption" Content="Encrypt" Width="80" Height="30" Margin="10" Background="#00ADEF" Foreground="#FFFFFF" BorderThickness="0" Click="btn_Start_Click"/>
+            <Button x:Name="decrypt" Content="Decrypt" Width="80" Height="30" Margin="10" Background="#00ADEF" Foreground="#FFFFFF" BorderThickness="0" />
+            <Button x:Name="btn_Cancel" Content="Cancel" Width="80" Height="30" Margin="10" Background="#FF3333" Foreground="#FFFFFF" BorderThickness="0" Click="btn_Cancel_Click"/>
+        </StackPanel>
+
+        <Label x:Name="lbl_text_afis" Content="Label" HorizontalAlignment="Left" Margin="21,168,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.555,0.595" Foreground="#FFFFFF" Grid.Row="3" />
+
+        <ProgressBar x:Name="progres" Grid.Row="4" Grid.ColumnSpan="2" Height="10" Margin="10" Background="#444444" Foreground="#00ADEF"/>
     </Grid>
 </Window>
