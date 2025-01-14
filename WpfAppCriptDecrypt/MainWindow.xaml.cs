@@ -1,155 +1,256 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-
 
 namespace WpfAppCriptDecrypt
 {
     public partial class MainWindow : Window
     {
-        BackgroundWorker bkworker = new BackgroundWorker();
+        BackgroundWorker bkworkerEncrypt = new BackgroundWorker();
+        BackgroundWorker bkworkerDecrypt = new BackgroundWorker();
+        private bool isPaused = false;
+
         public MainWindow()
         {
             InitializeComponent();
-            bkworker.WorkerReportsProgress = true; //declanseaza eveniment ProgresChanged
-            bkworker.WorkerSupportsCancellation = true; //va suporta intrerupere - Cancel
-                                                        //se asociaza handler pt evenimentului DoWork executat de BackgroundWorker
-            bkworker.DoWork += bkworker_DoWork;
-            //se asociaza metoda handler a evenimentului ProgressChanged
-            //care se va declansa cand se raporteaza progresul cu ReportProgress
-            bkworker.ProgressChanged += bkworker_ProgressChanged;
-            //se asociaza metoda handler a evenimentului RunWorkerCompleted
-            //se va declansa atunci cand BackgroundWorker isi termina executia
-            bkworker.RunWorkerCompleted += bkworker_RunWorkerCompleted;
+            bkworkerEncrypt.WorkerReportsProgress = true;
+            bkworkerEncrypt.WorkerSupportsCancellation = true;
+            bkworkerEncrypt.DoWork += bkworkerEncrypt_DoWork;
+            bkworkerEncrypt.ProgressChanged += bkworker_ProgressChanged;
+            bkworkerEncrypt.RunWorkerCompleted += bkworker_RunWorkerCompleted;
+
+            bkworkerDecrypt.WorkerReportsProgress = true;
+            bkworkerDecrypt.WorkerSupportsCancellation = true;
+            bkworkerDecrypt.DoWork += bkworkerDecrypt_DoWork;
+            bkworkerDecrypt.ProgressChanged += bkworker_ProgressChanged;
+            bkworkerDecrypt.RunWorkerCompleted += bkworker_RunWorkerCompleted;
+
             lbl_text_afis.Content = "Hello BackgroudWorker!";
         }
-        //metoda (procesarea) pe care o executa BackgroundWorker
-        void bkworker_DoWork(object? sender, DoWorkEventArgs e)
+
+        void bkworkerEncrypt_DoWork(object? sender, DoWorkEventArgs e)
         {
-            int total = 0;
-            // for (int i = 0; i <= 100; i += 10)
-            for (int i = 0; i <= 100; i++)
+            string text = (string)e.Argument;
+            string textCriptat = "";
+            string key = "";
+            for (int i = 0; i < text.Length; i++)
             {
-                //daca s-a solicitat Cancel
-                if (bkworker.CancellationPending)
-                { e.Cancel = true; return; }
-                //raporteaza progresul
-                //se declanseaza un eveniment ProgressChanged
-                bkworker.ReportProgress(i);
-                total += i;
-                //continua prelucrarea...simulam o intarziere….
+                if (bkworkerEncrypt.CancellationPending)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+
+                while (isPaused)
+                {
+                    Thread.Sleep(100);
+                }
+
+                var (encryptedChar, keyChar) = Cripting.CriptareChar(text[i], i);
+                textCriptat += encryptedChar;
+                key += keyChar;
+
+                int progressPercentage = (i + 1) * 100 / text.Length;
+                bkworkerEncrypt.ReportProgress(progressPercentage, new Tuple<string, string>(textCriptat, key));
+
                 Thread.Sleep(100);
             }
-            //s-a finalizat prelucrarea
-            //se transmite rezultatul catre RunWorkerCompleted
-            e.Result = total;
+            e.Result = new Tuple<string, string>(textCriptat, key);
         }
-        //metoda executata atunci cand BackgroundWorker isi finalizeaza executia
+
+        void bkworkerDecrypt_DoWork(object? sender, DoWorkEventArgs e)
+        {
+            var data = (Tuple<string, string>)e.Argument;
+            string text = data.Item1;
+            string key = data.Item2;
+            string textDecriptat = "";
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (bkworkerDecrypt.CancellationPending)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+
+                while (isPaused)
+                {
+                    Thread.Sleep(100);
+                }
+
+                char decryptedChar = Cripting.DecriptareChar(text[i], key[i], i);
+                textDecriptat += decryptedChar;
+
+                int progressPercentage = (i + 1) * 100 / text.Length;
+                bkworkerDecrypt.ReportProgress(progressPercentage, textDecriptat);
+
+                Thread.Sleep(100);
+            }
+            e.Result = textDecriptat;
+        }
+
         void bkworker_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {
-            //daca a fost Cancel
-            if (e.Cancelled) lbl_text_afis.Content += " Canceled!";
-            //daca a aparut o exceptie
+            if (e.Cancelled)
+            {
+                lbl_text_afis.Content += " Canceled!";
+                if (sender == bkworkerEncrypt)
+                {
+                    text_crypted.Text += " (Invalid)";
+                }
+                else if (sender == bkworkerDecrypt)
+                {
+                    text_decrypted.Text += " (Invalid)";
+                }
+            }
             else if (e.Error != null)
+            {
                 lbl_text_afis.Content = "Exceptie BackgoroudWorker : " + e.Error.ToString();
+            }
             else
-                //daca s-a terminat complet se afiseaza rezultatul transmis de DoWork
-                lbl_text_afis.Content = "Finalizat! Total = " + e.Result;
+            {
+                if (sender == bkworkerEncrypt)
+                {
+                    var result = (Tuple<string, string>)e.Result;
+                    text_crypted.Text = result.Item1;
+                    text_decrypted.Tag = result.Item2; // Store the key in the Tag property
+                    lbl_text_afis.Content = "Encryption Finalized!";
+                }
+                else if (sender == bkworkerDecrypt)
+                {
+                    text_decrypted.Text = (string)e.Result;
+                    lbl_text_afis.Content = "Decryption Finalized!";
+                }
+            }
         }
-        //metoda care se declanseaza la apelul ReportProgress
+
         void bkworker_ProgressChanged(object? sender, ProgressChangedEventArgs e)
         {
             this.progres.Value = e.ProgressPercentage;
+            if (e.UserState is Tuple<string, string> encryptState)
+            {
+                text_crypted.Text = encryptState.Item1;
+            }
+            else if (e.UserState is string decryptState)
+            {
+                text_decrypted.Text = decryptState;
+            }
             lbl_text_afis.Content = "Am ajuns la " + e.ProgressPercentage + "%";
         }
-        //metoda handler buton Start Cripting
+
         private void btn_Start_Click(object sender, RoutedEventArgs e)
         {
-            bkworker.RunWorkerAsync(100);
-            string[] args = { "one", "two" };
-            Procesare(args);
+            isPaused = false;
+            if (((ComboBoxItem)comboBoxProcessingType.SelectedItem).Content.ToString() == "BackgroundWorker")
+            {
+                bkworkerEncrypt.RunWorkerAsync(text_originall.Text);
+            }
+            else
+            {
+                Task.Run(async () =>
+                {
+                    string text = text_originall.Text;
+                    string textCriptat = "";
+                    string key = "";
+                    for (int i = 0; i < text.Length; i++)
+                    {
+                        if (isPaused)
+                        {
+                            await Task.Delay(100);
+                            i--;
+                            continue;
+                        }
+
+                        var (encryptedChar, keyChar) = Cripting.CriptareChar(text[i], i);
+                        textCriptat += encryptedChar;
+                        key += keyChar;
+
+                        int progressPercentage = (i + 1) * 100 / text.Length;
+                        Dispatcher.Invoke(() =>
+                        {
+                            this.progres.Value = progressPercentage;
+                            text_crypted.Text = textCriptat;
+                            lbl_text_afis.Content = "Am ajuns la " + progressPercentage + "%";
+                        });
+
+                        await Task.Delay(100);
+                    }
+                    Dispatcher.Invoke(() =>
+                    {
+                        text_crypted.Text = textCriptat;
+                        text_decrypted.Tag = key; // Store the key in the Tag property
+                        lbl_text_afis.Content = "Encryption Finalized!";
+                    });
+                });
+            }
         }
-        //metoda handler buton Cancel
+
+        private void btn_Decrypt_Click(object sender, RoutedEventArgs e)
+        {
+            isPaused = false;
+            if (((ComboBoxItem)comboBoxProcessingType.SelectedItem).Content.ToString() == "BackgroundWorker")
+            {
+                var data = new Tuple<string, string>(text_crypted.Text, (string)text_decrypted.Tag);
+                bkworkerDecrypt.RunWorkerAsync(data);
+            }
+            else
+            {
+                Task.Run(async () =>
+                {
+                    string text = text_crypted.Text;
+                    string key = (string)text_decrypted.Tag;
+                    string textDecriptat = "";
+                    for (int i = 0; i < text.Length; i++)
+                    {
+                        if (isPaused)
+                        {
+                            await Task.Delay(100);
+                            i--;
+                            continue;
+                        }
+
+                        char decryptedChar = Cripting.DecriptareChar(text[i], key[i], i);
+                        textDecriptat += decryptedChar;
+
+                        int progressPercentage = (i + 1) * 100 / text.Length;
+                        Dispatcher.Invoke(() =>
+                        {
+                            this.progres.Value = progressPercentage;
+                            text_decrypted.Text = textDecriptat;
+                            lbl_text_afis.Content = "Am ajuns la " + progressPercentage + "%";
+                        });
+
+                        await Task.Delay(100);
+                    }
+                    Dispatcher.Invoke(() =>
+                    {
+                        text_decrypted.Text = textDecriptat;
+                        lbl_text_afis.Content = "Decryption Finalized!";
+                    });
+                });
+            }
+        }
+
+        private void btn_Freeze_Click(object sender, RoutedEventArgs e)
+        {
+            isPaused = true;
+        }
+
         private void btn_Cancel_Click(object sender, RoutedEventArgs e)
         {
-            text_crypted.Text = string.Empty; 
-            text_decrypted.Text = string.Empty;
-            if (bkworker.IsBusy) bkworker.CancelAsync();
+            if (bkworkerEncrypt.IsBusy) bkworkerEncrypt.CancelAsync();
+            if (bkworkerDecrypt.IsBusy) bkworkerDecrypt.CancelAsync();
+            isPaused = false;
         }
-        public void Procesare(string[] args)
+
+        private void btn_Clear_Click(object sender, RoutedEventArgs e)
         {
-            Task<String> t1 = new Task<String>(() => Cripting.Criptare(text_originall.Text));
-            //Task<String> t2 = new Task<String>(() => AfisCuvinte());
-            //Task<String> t3 = new Task<String>(() => AfisCulori());
-            //pornire task-uri utilizand Start
-            t1.Start();
-            //t2.Start();
-            //t3.Start();
-
-            ////alternativa cu Parallel.Invoke
-            //Parallel.Invoke
-            // (
-            // new Action(),
-            // new Action(),
-            // new Action()
-            // );
-
-
-            //afisare valori returnate de task - proprietatea Result
-            //.NET blocheaza thread-ul main pentru a astepta finalizarea task-urilor
-            System.Diagnostics.Debug.WriteLine(t1.Result);
-            //System.Diagnostics.Debug.WriteLine(t2.Result);
-            //System.Diagnostics.Debug.WriteLine(t3.Result);
-            Console.ReadLine();
+            text_crypted.Text = string.Empty;
+            text_decrypted.Text = string.Empty;
+            lbl_text_afis.Content = "Cleared!";
+            progres.Value = 0;
         }
-        //static String AfisNumere()
-        //{
-        //    Thread.CurrentThread.Name = "Thread-ul 1";
-        //    for (int i = 0; i < 5; i++)
-        //    {
-        //        System.Diagnostics.Debug.WriteLine(String.Format("Numele thread-ului {0} numarul curent {1}", Thread.CurrentThread.Name, i));
-        //        Thread.Sleep(1000);
-        //    }
-        //    return String.Format("Task-ul cu numele {0} si-a finalizat executia!",
-        //    Thread.CurrentThread.Name);
-        //}
-        //static String AfisCulori()
-        //{
-        //    Thread.CurrentThread.Name = "Thread-ul 3";
-        //    String[] culori = { "rosu", "galben", "verde", "albastru", "portocaliu" };
-        //    foreach (String c in culori)
-        //    {
-        //        System.Diagnostics.Debug.WriteLine(String.Format("Numele thread-ului {0} numarul curent {1}", Thread.CurrentThread.Name, c));
-        //        Thread.Sleep(1000);
-        //    }
-        //    return String.Format("Task-ul cu numele {0} si-a finalizat executia!",
-        //    Thread.CurrentThread.Name);
-        //}
-        //static String AfisCuvinte()
-        //{
-        //    Thread.CurrentThread.Name = "Thread-ul 2";
-        //    String text = "Exemplu de sir utilizat pentru crearea taskurilor concurente";
-        //    String[] cuvinte = text.Split(' ');
-        //    foreach (String s in cuvinte)
-        //    {
-        //        System.Diagnostics.Debug.WriteLine(String.Format("Numele thread-ului {0} numarul curent {1}", Thread.CurrentThread.Name, s));
-        //        Thread.Sleep(1000);
-        //    }
-        //    return String.Format("Task-ul cu numele {0} si-a finalizat executia!",
-        //    Thread.CurrentThread.Name);
-        //}
     }
 }

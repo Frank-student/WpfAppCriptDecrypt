@@ -30,15 +30,22 @@
         <TextBlock Text="Decrypted Text" Foreground="#FFFFFF" FontWeight="Bold" Margin="10" Grid.Row="2" Grid.Column="0" />
         <TextBox x:Name="text_decrypted" Margin="10" Grid.Row="2" Grid.Column="1" Height="30" VerticalAlignment="Center" Background="#2B2B2B" Foreground="#FFFFFF" BorderThickness="0" />
 
+        <TextBlock Text="Processing Type" Foreground="#FFFFFF" FontWeight="Bold" Margin="10" Grid.Row="3" Grid.Column="0" />
+        <ComboBox x:Name="comboBoxProcessingType" Margin="10,7,10,0" Grid.Row="3" Grid.Column="1" Height="30" VerticalAlignment="Top" Background="#2B2B2B" Foreground="#FFFFFF" BorderThickness="0">
+            <ComboBoxItem Content="BackgroundWorker" IsSelected="True"/>
+            <ComboBoxItem Content="Task"/>
+        </ComboBox>
 
-        <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+        <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="btn_Start_Encryption" Content="Encrypt" Width="80" Height="30" Margin="10" Background="#00ADEF" Foreground="#FFFFFF" BorderThickness="0" Click="btn_Start_Click"/>
-            <Button x:Name="decrypt" Content="Decrypt" Width="80" Height="30" Margin="10" Background="#00ADEF" Foreground="#FFFFFF" BorderThickness="0" />
+            <Button x:Name="btn_Decrypt" Content="Decrypt" Width="80" Height="30" Margin="10" Background="#00ADEF" Foreground="#FFFFFF" BorderThickness="0" Click="btn_Decrypt_Click"/>
+            <Button x:Name="btn_Freeze" Content="Freeze" Width="80" Height="30" Margin="10" Background="#FFA500" Foreground="#FFFFFF" BorderThickness="0" Click="btn_Freeze_Click"/>
             <Button x:Name="btn_Cancel" Content="Cancel" Width="80" Height="30" Margin="10" Background="#FF3333" Foreground="#FFFFFF" BorderThickness="0" Click="btn_Cancel_Click"/>
+            <Button x:Name="btn_Clear" Content="Clear" Width="80" Height="30" Margin="10" Background="#FF3333" Foreground="#FFFFFF" BorderThickness="0" Click="btn_Clear_Click"/>
         </StackPanel>
 
-        <Label x:Name="lbl_text_afis" Content="Label" HorizontalAlignment="Left" Margin="21,168,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.555,0.595" Foreground="#FFFFFF" Grid.Row="3" />
+        <Label x:Name="lbl_text_afis" Content="Label" HorizontalAlignment="Left" Margin="21,168,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.555,0.595" Foreground="#FFFFFF" Grid.Row="4" />
 
-        <ProgressBar x:Name="progres" Grid.Row="4" Grid.ColumnSpan="2" Height="10" Margin="10" Background="#444444" Foreground="#00ADEF"/>
+        <ProgressBar x:Name="progres" Grid.Row="4" Grid.ColumnSpan="2" Height="10" Margin="10,158,10,26" Background="#444444" Foreground="#00ADEF"/>
     </Grid>
 </Window>
