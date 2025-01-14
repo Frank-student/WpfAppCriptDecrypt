@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,6 +16,7 @@ namespace WpfAppCriptDecrypt
         BackgroundWorker bkworkerEncrypt = new BackgroundWorker();
         BackgroundWorker bkworkerDecrypt = new BackgroundWorker();
         private bool isPaused = false;
+        private CancellationTokenSource? cts;
 
         public MainWindow()
         {
@@ -143,12 +148,15 @@ namespace WpfAppCriptDecrypt
         private void btn_Start_Click(object sender, RoutedEventArgs e)
         {
             isPaused = false;
-            if (((ComboBoxItem)comboBoxProcessingType.SelectedItem).Content.ToString() == "BackgroundWorker")
+            string processingType = ((ComboBoxItem)comboBoxProcessingType.SelectedItem).Content.ToString();
+            if (processingType == "BackgroundWorker")
             {
                 bkworkerEncrypt.RunWorkerAsync(text_originall.Text);
             }
-            else
+            else if (processingType == "Task")
             {
+                cts = new CancellationTokenSource();
+                var token = cts.Token;
                 Task.Run(async () =>
                 {
                     string text = text_originall.Text;
@@ -156,6 +164,12 @@ namespace WpfAppCriptDecrypt
                     string key = "";
                     for (int i = 0; i < text.Length; i++)
                     {
+                        if (token.IsCancellationRequested)
+                        {
+                            Dispatcher.Invoke(() => text_crypted.Text += " (Invalid)");
+                            return;
+                        }
+
                         if (isPaused)
                         {
                             await Task.Delay(100);
@@ -183,20 +197,116 @@ namespace WpfAppCriptDecrypt
                         text_decrypted.Tag = key; // Store the key in the Tag property
                         lbl_text_afis.Content = "Encryption Finalized!";
                     });
-                });
+                }, token);
+            }
+            else if (processingType == "Parallel")
+            {
+                cts = new CancellationTokenSource();
+                var token = cts.Token;
+                Task.Run(() =>
+                {
+                    string text = text_originall.Text;
+                    char[] textCriptat = new char[text.Length];
+                    char[] key = new char[text.Length];
+                    Parallel.For(0, text.Length, (i, state) =>
+                    {
+                        if (token.IsCancellationRequested)
+                        {
+                            state.Stop();
+                            Dispatcher.Invoke(() => text_crypted.Text += " (Invalid)");
+                            return;
+                        }
+
+                        while (isPaused)
+                        {
+                            Thread.Sleep(100);
+                        }
+
+                        var (encryptedChar, keyChar) = Cripting.CriptareChar(text[i], i);
+                        textCriptat[i] = encryptedChar;
+                        key[i] = keyChar;
+
+                        int progressPercentage = (i + 1) * 100 / text.Length;
+                        Dispatcher.Invoke(() =>
+                        {
+                            this.progres.Value = progressPercentage;
+                            text_crypted.Text = new string(textCriptat);
+                            lbl_text_afis.Content = "Am ajuns la " + progressPercentage + "%";
+                        });
+
+                        Thread.Sleep(100);
+                    });
+                    Dispatcher.Invoke(() =>
+                    {
+                        text_crypted.Text = new string(textCriptat);
+                        text_decrypted.Tag = new string(key); // Store the key in the Tag property
+                        lbl_text_afis.Content = "Encryption Finalized!";
+                    });
+                }, token);
+            }
+            else if (processingType == "PLINQ")
+            {
+                cts = new CancellationTokenSource();
+                var token = cts.Token;
+                Task.Run(() =>
+                {
+                    string text = text_originall.Text;
+                    var textCriptat = new ConcurrentQueue<char>();
+                    var key = new ConcurrentQueue<char>();
+
+                    text.AsParallel().WithCancellation(token).Select((ch, i) =>
+                    {
+                        if (token.IsCancellationRequested)
+                        {
+                            Dispatcher.Invoke(() => text_crypted.Text += " (Invalid)");
+                            return (default(char), default(char));
+                        }
+
+                        while (isPaused)
+                        {
+                            Thread.Sleep(100);
+                        }
+
+                        var (encryptedChar, keyChar) = Cripting.CriptareChar(ch, i);
+                        textCriptat.Enqueue(encryptedChar);
+                        key.Enqueue(keyChar);
+
+                        int progressPercentage = (i + 1) * 100 / text.Length;
+                        Dispatcher.Invoke(() =>
+                        {
+                            this.progres.Value = progressPercentage;
+                            text_crypted.Text = new string(textCriptat.ToArray());
+                            lbl_text_afis.Content = "Am ajuns la " + progressPercentage + "%";
+                        });
+
+                        Thread.Sleep(100);
+                        Debug.Print("In thread-ul de criptare: " + Thread.CurrentThread.ManagedThreadId);
+                        return (encryptedChar, keyChar);
+                    }).ToList();
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        text_crypted.Text = new string(textCriptat.ToArray());
+                        text_decrypted.Tag = new string(key.ToArray()); // Store the key in the Tag property
+                        lbl_text_afis.Content = "Encryption Finalized!";
+                    });
+                }, token);
             }
         }
 
         private void btn_Decrypt_Click(object sender, RoutedEventArgs e)
         {
             isPaused = false;
-            if (((ComboBoxItem)comboBoxProcessingType.SelectedItem).Content.ToString() == "BackgroundWorker")
+            string processingType = ((ComboBoxItem)comboBoxProcessingType.SelectedItem).Content.ToString();
+            if (processingType == "BackgroundWorker")
             {
                 var data = new Tuple<string, string>(text_crypted.Text, (string)text_decrypted.Tag);
                 bkworkerDecrypt.RunWorkerAsync(data);
             }
-            else
+            else if (processingType == "Task")
             {
+                cts = new CancellationTokenSource();
+                var token = cts.Token;
                 Task.Run(async () =>
                 {
                     string text = text_crypted.Text;
@@ -204,6 +314,12 @@ namespace WpfAppCriptDecrypt
                     string textDecriptat = "";
                     for (int i = 0; i < text.Length; i++)
                     {
+                        if (token.IsCancellationRequested)
+                        {
+                            Dispatcher.Invoke(() => text_decrypted.Text += " (Invalid)");
+                            return;
+                        }
+
                         if (isPaused)
                         {
                             await Task.Delay(100);
@@ -229,7 +345,96 @@ namespace WpfAppCriptDecrypt
                         text_decrypted.Text = textDecriptat;
                         lbl_text_afis.Content = "Decryption Finalized!";
                     });
-                });
+                }, token);
+            }
+            else if (processingType == "Parallel")
+            {
+                cts = new CancellationTokenSource();
+                var token = cts.Token;
+                Task.Run(() =>
+                {
+                    string text = text_crypted.Text;
+                    string key = (string)text_decrypted.Tag;
+                    char[] textDecriptat = new char[text.Length];
+                    Parallel.For(0, text.Length, (i, state) =>
+                    {
+                        if (token.IsCancellationRequested)
+                        {
+                            state.Stop();
+                            Dispatcher.Invoke(() => text_decrypted.Text += " (Invalid)");
+                            return;
+                        }
+
+                        while (isPaused)
+                        {
+                            Thread.Sleep(100);
+                        }
+
+                        char decryptedChar = Cripting.DecriptareChar(text[i], key[i], i);
+                        textDecriptat[i] = decryptedChar;
+
+                        int progressPercentage = (i + 1) * 100 / text.Length;
+                        Dispatcher.Invoke(() =>
+                        {
+                            this.progres.Value = progressPercentage;
+                            text_decrypted.Text = new string(textDecriptat);
+                            lbl_text_afis.Content = "Am ajuns la " + progressPercentage + "%";
+                        });
+
+                        Thread.Sleep(100);
+                    });
+                    Dispatcher.Invoke(() =>
+                    {
+                        text_decrypted.Text = new string(textDecriptat);
+                        lbl_text_afis.Content = "Decryption Finalized!";
+                    });
+                }, token);
+            }
+            else if (processingType == "PLINQ")
+            {
+                cts = new CancellationTokenSource();
+                var token = cts.Token;
+                Task.Run(() =>
+                {
+                    string text = text_crypted.Text;
+                    string key = (string)text_decrypted.Tag;
+                    var textDecriptat = new ConcurrentQueue<char>();
+
+                    text.AsParallel().WithCancellation(token).Select((ch, i) =>
+                    {
+                        if (token.IsCancellationRequested)
+                        {
+                            Dispatcher.Invoke(() => text_decrypted.Text += " (Invalid)");
+                            return default(char);
+                        }
+
+                        while (isPaused)
+                        {
+                            Thread.Sleep(100);
+                        }
+
+                        char decryptedChar = Cripting.DecriptareChar(ch, key[i], i);
+                        textDecriptat.Enqueue(decryptedChar);
+
+                        int progressPercentage = (i + 1) * 100 / text.Length;
+                        Dispatcher.Invoke(() =>
+                        {
+                            this.progres.Value = progressPercentage;
+                            text_decrypted.Text = new string(textDecriptat.ToArray());
+                            lbl_text_afis.Content = "Am ajuns la " + progressPercentage + "%";
+                        });
+
+                        Thread.Sleep(100);
+                        Debug.Print("In thread-ul de decriptare: " + Thread.CurrentThread.ManagedThreadId);
+                        return decryptedChar;
+                    }).ToList();
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        text_decrypted.Text = new string(textDecriptat.ToArray());
+                        lbl_text_afis.Content = "Decryption Finalized!";
+                    });
+                }, token);
             }
         }
 
@@ -242,6 +447,7 @@ namespace WpfAppCriptDecrypt
         {
             if (bkworkerEncrypt.IsBusy) bkworkerEncrypt.CancelAsync();
             if (bkworkerDecrypt.IsBusy) bkworkerDecrypt.CancelAsync();
+            cts?.Cancel();
             isPaused = false;
         }
 
