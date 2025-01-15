@@ -32,8 +32,7 @@
 
         <TextBlock Text="Processing Type" Foreground="#FFFFFF" FontWeight="Bold" Margin="10" Grid.Row="3" Grid.Column="0" />
         <ComboBox x:Name="comboBoxProcessingType" Margin="10" Grid.Row="3" Grid.Column="1" Height="30" VerticalAlignment="Center" Background="#2B2B2B" Foreground="#FFFFFF" BorderThickness="0">
-            <ComboBoxItem Content="BackgroundWorker" IsSelected="True"/>
-            <ComboBoxItem Content="Task"/>
+            <ComboBoxItem Content="Task" IsSelected="True"/>
             <ComboBoxItem Content="Parallel"/>
             <ComboBoxItem Content="PLINQ"/>
         </ComboBox>
