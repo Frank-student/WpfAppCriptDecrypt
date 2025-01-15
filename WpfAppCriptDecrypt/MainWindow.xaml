@@ -35,6 +35,7 @@
             <ComboBoxItem Content="BackgroundWorker" IsSelected="True"/>
             <ComboBoxItem Content="Task"/>
             <ComboBoxItem Content="Parallel"/>
+            <ComboBoxItem Content="PLINQ"/>
         </ComboBox>
 
         <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">

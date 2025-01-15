@@ -120,7 +120,7 @@ namespace WpfAppCriptDecrypt
                 {
                     var result = (Tuple<string, string>)e.Result;
                     text_crypted.Text = result.Item1;
-                    text_decrypted.Tag = result.Item2; // Store the key in the Tag property
+                    text_decrypted.Tag = result.Item2; 
                     lbl_text_afis.Content = "Encryption Finalized!";
                 }
                 else if (sender == bkworkerDecrypt)
@@ -194,7 +194,7 @@ namespace WpfAppCriptDecrypt
                     Dispatcher.Invoke(() =>
                     {
                         text_crypted.Text = textCriptat;
-                        text_decrypted.Tag = key; // Store the key in the Tag property
+                        text_decrypted.Tag = key;
                         lbl_text_afis.Content = "Encryption Finalized!";
                     });
                 }, token);
@@ -239,7 +239,7 @@ namespace WpfAppCriptDecrypt
                     Dispatcher.Invoke(() =>
                     {
                         text_crypted.Text = new string(textCriptat);
-                        text_decrypted.Tag = new string(key); // Store the key in the Tag property
+                        text_decrypted.Tag = new string(key); 
                         lbl_text_afis.Content = "Encryption Finalized!";
                     });
                 }, token);
@@ -287,7 +287,7 @@ namespace WpfAppCriptDecrypt
                     Dispatcher.Invoke(() =>
                     {
                         text_crypted.Text = new string(textCriptat.ToArray());
-                        text_decrypted.Tag = new string(key.ToArray()); // Store the key in the Tag property
+                        text_decrypted.Tag = new string(key.ToArray()); 
                         lbl_text_afis.Content = "Encryption Finalized!";
                     });
                 }, token);
